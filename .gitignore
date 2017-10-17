@@ -1,0 +1,11 @@
+# PyCharm files
+.idea/
+__pycache__/
+
+# Statistical data
+ngrams/
+documents/
+
+# Irrelevant scripts
+smthng/
+
