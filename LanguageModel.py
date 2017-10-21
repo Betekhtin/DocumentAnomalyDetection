@@ -1,22 +1,22 @@
-import os
-from nltk import FreqDist
 import nltk.probability as prob
-
+from read_ngrams import unigrams, bigrams, trigrams
+from nltk.util import ngrams
 from ContractStructure import Sentence
+
 
 class TrigramModel:
 
-    def __init__(self, freq_unigrams, freq_bigrams, freq_trigrams, lambdas = (1,0,0)):
-        self.unigram_dist = prob.MLEProbDist(freq_unigrams)
-        self.bigram_dist = prob.MLEProbDist(freq_bigrams)
-        self.trigram_dist = prob.MLEProbDist(freq_trigrams)
+    def __init__(self, freq_unigrams, freq_bigrams, freq_trigrams, lambdas=(1, 0, 0), prob_dist=prob.MLEProbDist):
+        self.unigram_dist = prob_dist(freq_unigrams)
+        self.bigram_dist = prob_dist(freq_bigrams)
+        self.trigram_dist = prob_dist(freq_trigrams)
         self.unigram_freq = freq_unigrams
         self.bigram_freq = freq_bigrams
         self.trigram_freq = freq_trigrams
         self.lambdas = lambdas
 
     def _simple_backoff(self, ngram, alpha=0.4):
-        if len(ngram) != 3: raise Exception('Maximal length of ngram in trigram model is 3')
+        if len(ngram) > 3: raise Exception('Maximal length of ngram in trigram model is 3')
 
         if len(ngram) == 3:
             if self.trigram_freq[ngram] == 0:
@@ -24,7 +24,7 @@ class TrigramModel:
             else: return self.trigram_dist.prob(ngram)
         if len(ngram) == 2:
             if self.bigram_freq[ngram] == 0:
-                return alpha * self.unigram_dist.prob(ngram[2])
+                return alpha * self.unigram_dist.prob(ngram[1])
             else: return self.bigram_dist.prob(ngram)
         return self.unigram_dist.prob(ngram)
 
@@ -36,40 +36,15 @@ class TrigramModel:
                self.lambdas[2] * self.unigram_dist.prob(tuple([trigram[2]]))
 
     def get_probabilities(self, sentence, method=_simple_backoff):
-        tokens = Sentence(sentence).normalize().tokenize()
+        trigrams = ngrams(['#', '#'] + Sentence(sentence).normalize().tokenize(), 3)
         probs = []
-        if len(tokens) > 0:
-            probs.append(method(tuple([tokens[0]])))
-            if len(tokens) > 1:
-                probs.append(method(tuple([tokens[0], tokens[1]])))
-        for i in range(2, len(tokens)):
-            probs.append(method(tuple([tokens[i - 2], tokens[i - 1], tokens[i]])))
-        print(tokens)
+        for trigram in trigrams:
+            probs.append(method(self, trigram))
+        print([i for i in trigrams])
         return probs
 
-ngrams_folder = os.path.join(os.getcwd(), 'ngrams')
-
-unigrams = FreqDist()
-bigrams = FreqDist()
-trigrams = FreqDist()
-
-with open(os.path.join(ngrams_folder, 'unigrams.txt'), 'r', encoding='utf-8') as file:
-    for line in file.readlines():
-        entry = line.strip().split(' ')
-        unigrams[(entry[0],)] = int(entry[1])
-
-with open(os.path.join(ngrams_folder, 'bigrams.txt'), 'r', encoding='utf-8') as file:
-    for line in file.readlines():
-        entry = line.strip().split(' ')
-        bigrams[tuple(entry[0:2])] = int(entry[2])
-
-with open(os.path.join(ngrams_folder, 'trigrams.txt'), 'r', encoding='utf-8') as file:
-    for line in file.readlines():
-        entry = line.strip().split(' ')
-        trigrams[tuple(entry[0:3])] = int(entry[3])
-
-model = TrigramModel(unigrams, bigrams, trigrams, (0.5, 0.3, 0.1))
-str = "Настоящим Договором предусмотрено получение Товара Получателем на складе Поставщика, если иное не оговорено Сторонами в дополнительном соглашении"
+model = TrigramModel(unigrams, bigrams, trigrams, lambdas=(0.5, 0.3, 0.2), prob_dist=prob.LaplaceProbDist)
+str = "Настоящим Договором предусмотрено"
 print(Sentence(str).normalize().tokenize())
 print(model.get_probabilities(str))
 print(model.get_probabilities(str, TrigramModel._linear_interpolation))
