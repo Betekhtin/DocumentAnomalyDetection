@@ -4,6 +4,7 @@ __pycache__/
 
 # Not finished yet
 TestSentencesGenerator.py
+model_testing.py
 
 # Statistical data
 ngrams/

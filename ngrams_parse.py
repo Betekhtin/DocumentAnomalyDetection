@@ -1,10 +1,11 @@
 from nltk.util import ngrams
-import ContractStructure as cs
+from ContractStructure import *
 import os
 import time
 
-doc_folder = os.path.join(os.getcwd(), 'documents', 'txt', 'doc')
-docx_folder = os.path.join(os.getcwd(),'documents', 'txt', 'docx')
+obj_folder = os.path.join(os.getcwd(), 'documents', 'objects')
+doc_obj_folder = os.path.join(obj_folder, 'doc')
+docx_obj_folder = os.path.join(obj_folder, 'docx')
 ngrams_folder = os.path.join(os.getcwd(), 'ngrams')
 
 
@@ -12,30 +13,18 @@ unigrams = {}
 bigrams = {}
 trigrams = {}
 
-abspath_doc = lambda x: os.path.join(doc_folder, x)
-abspath_docx = lambda x: os.path.join(docx_folder, x)
-
+abspath_doc = lambda x: os.path.join(doc_obj_folder, x)
+abspath_docx = lambda x: os.path.join(docx_obj_folder, x)
 
 #Elapsed time 1:  11764.10448050499
+#Elapsed time 2 (doc objects): 139.37553548812866
 start = time.time()
 
-for file in (list(map(abspath_doc, os.listdir(doc_folder))) + list(map(abspath_docx, os.listdir(docx_folder)))):
-    d = cs.Document(file)
-    print(file, ":", "none" if (d.main_text == []) else '')
-
-    for paragraph in d.main_text: # + d.preamble.get_sentences(normalize=True, tokenize=True, remove_stop_words=True)
-        for sentence in paragraph.get_sentences(normalize=True, tokenize=True, remove_stop_words=True):
-            # get unigrams
-            for unigram in sentence:
-                unigrams[unigram] = (unigrams[unigram] + 1) if (unigram in unigrams) else 1
-            # get bugrams
-            for bigram in ngrams(['#'] + sentence, 2):
-                bigrams[bigram] = (bigrams[bigram] + 1) if (bigram in bigrams) else 1
-            # get trigrams
-            for trigram in ngrams(['#', '#'] + sentence, 3):
-                trigrams[trigram] = (trigrams[trigram] + 1) if (trigram in trigrams) else 1
-
-    for sentence in d.preamble.get_sentences(normalize=True, tokenize=True, remove_stop_words=True):
+for file in (list(map(abspath_doc, os.listdir(doc_obj_folder))) + list(map(abspath_docx, os.listdir(docx_obj_folder)))):
+    d = Document()
+    d.load(file)
+    print(file, ":")
+    for sentence in d.modeling_data:
         # get unigrams
         for unigram in sentence:
             unigrams[unigram] = (unigrams[unigram] + 1) if (unigram in unigrams) else 1

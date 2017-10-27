@@ -20,6 +20,7 @@ class Document:
             doc_text = ''
         self.title, self.preamble, numbered_text, self.attachment = _get_parts_of_text(doc_text)
         self.main_text = _get_main_text(numbered_text)
+        self.modeling_data = self._get_modeling_data()
 
     def __repr__(self):
         s = '{0}\n{1}\n{2}\n{3}'.format(self.title, self.preamble, self.get_text_recursively(), self.attachment)
@@ -66,6 +67,18 @@ class Document:
             self.preamble = doc.preamble
             self.main_text = doc.main_text
             self.attachment = doc.attachment
+            self.modeling_data = doc.modeling_data
+
+    def _get_modeling_data(self, normalize=True, tokenize=True, remove_stop_words=False):
+        sentences = self.preamble.get_sentences(normalize=normalize, tokenize=tokenize, remove_stop_words=remove_stop_words) +\
+                    self.attachment.get_sentences(normalize=normalize, tokenize=tokenize, remove_stop_words=remove_stop_words)
+        for line in self.get_text_recursively().split('\n'):
+            sentence = Sentence(line)
+            if normalize: sentence = sentence.normalize()
+            if tokenize: sentence = sentence.tokenize()
+            if remove_stop_words: sentence = sentence.remove_stop_words();
+            sentences.append(sentence)
+        return sentences
 
 
 class Paragraph:
@@ -137,7 +150,7 @@ class Sentence:
 
     def remove_stop_words(self):
         pattern = r'[^\w-]'
-        stop_words = get_stop_words(self.language)
+        stop_words = get_stop_words('russian') #self.language
         tokens = self.tokenize()
         good_tokens = []
         for token in tokens:
@@ -300,36 +313,12 @@ def _print_chapter(tree, q, level=0):
 
 
 if __name__ == "__main__":
-    # Examples of using
+    dir_path = os.path.join(os.getcwd(), 'documents', 'objects', 'doc')
     d = Document('documents/txt/doc/0cb3fa5380193efefeac0c461b.txt')
-
-    print(d)
-    print(d.get_titles_of_chapters())
-
-    dir_path = 'C:/Users/artem/PycharmProjects/LanguageModeling/doc_objects/doc/'
-    for i in range(len(d.main_text)):
-        print(d.main_text[i], ':')
-        for el in d.main_text[i].get_sentences(normalize=True, tokenize=True, remove_stop_words=True):
-            print(el)
-
-    d.save(dir_path, '0cb3fa5380193efefeac0c461b.txt')
-
+    print(d.modeling_data)
+    d.save(dir_path, '0cb3fa5380193efefeac0c461b')
     parsed_doc = Document()
-    parsed_doc.load(dir_path + '/0cb3fa5380193efefeac0c461b.txt')
-    print("title: ", parsed_doc.title)
-    print("preamble: ",parsed_doc.preamble)
-    print("attachement: ",parsed_doc.attachment)
-    print("main text: ",parsed_doc.main_text)
-    print("titles: ", parsed_doc.get_titles_of_chapters())
-    print("text: ", parsed_doc.get_text_recursively())
-
-    print("D: ")
-    print("text: ", d['предмет договора'].get_text_recursively())
-    print("sentences: ",d['предмет договора'].get_sentences())
-    print("sentences normalized: ", d['предмет договора'].get_sentences(normalize=True, tokenize=True, remove_stop_words=True))
-
-
-
-
+    parsed_doc.load(os.path.join(dir_path, '0cb3fa5380193efefeac0c461b'))
+    print(parsed_doc.modeling_data)
 
 

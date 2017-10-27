@@ -40,13 +40,14 @@ class TrigramModel:
         probs = []
         for trigram in trigrams:
             probs.append(method(self, trigram))
-        print([i for i in trigrams])
         return probs
 
-model = TrigramModel(unigrams, bigrams, trigrams, lambdas=(0.5, 0.3, 0.2), prob_dist=prob.LaplaceProbDist)
-str = "Настоящим Договором предусмотрено"
-print(Sentence(str).normalize().tokenize())
-print(model.get_probabilities(str))
-print(model.get_probabilities(str, TrigramModel._linear_interpolation))
-print(prob.MLEProbDist(trigrams).prob(('настоящее', 'договор', 'предусмотреть')))
-print(model._simple_backoff(('настоящее', 'договор', 'предусмотреть')))
+if __name__ == '__main__':
+    model1 = TrigramModel(unigrams, bigrams, trigrams, lambdas=(0.5, 0.3, 0.2), prob_dist=prob.LaplaceProbDist)
+    model2 = TrigramModel(unigrams, bigrams, trigrams, lambdas=(0.5, 0.3, 0.2))
+    str = "Настоящим Договором предусмотрено"
+    print(Sentence(str).normalize().tokenize())
+    print('Laplace Backoff probabilities: ', model1.get_probabilities(str))
+    print('MLE Interpolation probabilities: ',model1.get_probabilities(str, TrigramModel._linear_interpolation))
+    print('MLE Backoff probabilities: ', model2.get_probabilities(str))
+    print('MLE Interpolation probabilities: ',model2.get_probabilities(str, TrigramModel._linear_interpolation))
