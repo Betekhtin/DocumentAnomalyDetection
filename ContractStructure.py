@@ -4,18 +4,18 @@ Custom model of document. It consists of 3 classes: Document, Paragraph, Sentenc
 import os
 import pickle
 import re
-
 import pymorphy2
 from nltk import word_tokenize, RegexpTokenizer
 import nltk.data
 from stop_words import get_stop_words
+
 
 class Document:
     def __init__(self, doc_path=None):
         if doc_path:
             self.file_name = doc_path
             with open(self.file_name, 'r', encoding='utf-8') as file:
-                doc_text = re.sub(r'(_+)', '_', file.read()) # replace the gaps
+                doc_text = re.sub(r'(_+)', '_', file.read())  # replace the gaps
         else:
             doc_text = ''
         self.title, self.preamble, numbered_text, self.attachment = _get_parts_of_text(doc_text)
@@ -76,7 +76,7 @@ class Document:
             sentence = Sentence(line)
             if normalize: sentence = sentence.normalize()
             if tokenize: sentence = sentence.tokenize()
-            if remove_stop_words: sentence = sentence.remove_stop_words();
+            if remove_stop_words: sentence = sentence.remove_stop_words()
             sentences.append(sentence)
         return sentences
 

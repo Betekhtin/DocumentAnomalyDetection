@@ -1,14 +1,7 @@
-from ContractStructure import *
 import os
 import time
-
-obj_folder = os.path.join(os.getcwd(), 'documents', 'objects')
-txt_folder = os.path.join(os.getcwd(), 'documents', 'txt')
-
-doc_obj_folder = os.path.join(obj_folder, 'doc')
-docx_obj_folder = os.path.join(obj_folder, 'docx')
-doc_folder = os.path.join(txt_folder, 'doc')
-docx_folder = os.path.join(txt_folder, 'docx')
+from ContractStructure import *
+from paths import *
 
 total_time = time.time()
 
@@ -16,11 +9,11 @@ doc_time = time.time()
 avg_time = 0
 counter = 0
 
-for file in os.listdir(doc_folder):
+for file in os.listdir(doc_txt_folder):
     counter += 1
     cur_time = time.time()
 
-    d = Document(os.path.join(doc_folder, file))
+    d = Document(os.path.join(doc_txt_folder, file))
     d.save(doc_obj_folder, file.replace('.txt', ''))
 
     avg_time += time.time() - cur_time
@@ -35,12 +28,12 @@ docx_time = time.time()
 avg_time = 0
 counter = 0
 
-for file in os.listdir(docx_folder):
+for file in os.listdir(docx_txt_folder):
     counter += 1
     cur_time = time.time()
 
-    d = Document(os.path.join(docx_folder, file))
-    d.save(doc_obj_folder, file.replace('.txt', ''))
+    d = Document(os.path.join(docx_txt_folder, file))
+    d.save(docx_obj_folder, file.replace('.txt', ''))
 
     avg_time += time.time() - cur_time
     print(file, ":", time.time() - docx_time)
